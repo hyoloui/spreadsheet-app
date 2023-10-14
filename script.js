@@ -20,7 +20,23 @@ function initSpreadsheet() {
   for (let i = 0; i < ROWS; i += 1) {
     const row = [];
     for (let j = 0; j < COLS; j += 1) {
-      const cell = new Cell(false, false, i + "-" + j, i, j, false);
+      let cellData = "";
+
+      // 모든 셀의 첫번째 열에는 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+      if (j === 0) {
+        cellData = i;
+      }
+      // 모든 셀의 첫번째 행에는 A, B, C, D, E, F, G, H, I, J
+      if (i === 0) {
+        cellData = String.fromCharCode(65 + j - 1);
+      }
+
+      // 0-0 에는 빈 문자열
+      if (i === 0 && j === 0) {
+        cellData = "";
+      }
+
+      const cell = new Cell(false, false, cellData, i, j, false);
       row.push(cell); // 0-0, 0-1, 0-2, ...
     }
     spreadsheet.push(row);
@@ -31,7 +47,7 @@ function initSpreadsheet() {
 
 function createCellElement(cell) {
   const cellEl = document.createElement("input");
-  cellEl.classname = "cell";
+  cellEl.className = "cell";
   cellEl.id = "cell_" + cell.row + cell.column;
   cellEl.value = cell.data;
   cellEl.disabled = cell.disabled;
@@ -40,10 +56,15 @@ function createCellElement(cell) {
 
 function drawSheet() {
   for (let i = 0; i < spreadsheet.length; i += 1) {
+    const rowContainerEl = document.createElement("div");
+    rowContainerEl.className = "cell-row";
+
     for (let j = 0; j < spreadsheet[i].length; j += 1) {
       const cell = spreadsheet[i][j];
       const cellEl = createCellElement(cell);
-      spreadSheetContainer.appendChild(cellEl);
+      rowContainerEl.appendChild(cellEl);
     }
+
+    spreadSheetContainer.appendChild(rowContainerEl);
   }
 }
