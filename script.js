@@ -1,4 +1,5 @@
 const spreadSheetContainer = document.querySelector("#spreadsheet-container");
+const exportBtn = document.querySelector("#export-btn");
 const ROWS = 10;
 const COLS = 10;
 const spreadsheet = [];
@@ -27,6 +28,25 @@ class Cell {
 
 initSpreadsheet();
 
+exportBtn.onclick = () => {
+  let csv = "";
+  for (let i = 1; i < spreadsheet.length; i += 1) {
+    csv +=
+      spreadsheet[i]
+        .filter((cell) => !cell.isHeader) // 헤더는 제외
+        .map((cell) => cell.data) // 데이터만 추출
+        .join(",") + "\r\n"; // 콤마로 구분
+  }
+  const csvObj = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const csvUrl = URL.createObjectURL(csvObj);
+
+  const downloadLink = document.createElement("a");
+  downloadLink.href = csvUrl;
+  addEventListener.download = "spreadsheet.csv";
+  downloadLink.click();
+};
+
+/** 스프레드시트를 초기화하는 함수입니다 */
 function initSpreadsheet() {
   for (let i = 0; i < ROWS; i += 1) {
     const row = [];
@@ -71,9 +91,9 @@ function initSpreadsheet() {
     spreadsheet.push(row);
   }
   drawSheet();
-  console.log(spreadsheet);
 }
 
+/** 셀 input 속성을 만드는 함수입니다 */
 function createCellElement(cell) {
   const cellEl = document.createElement("input");
   cellEl.className = "cell";
@@ -86,10 +106,17 @@ function createCellElement(cell) {
   }
 
   cellEl.onclick = () => handleCellClick(cell);
+  cellEl.onchange = (e) => handleOnChange(e.target.value, cell);
 
   return cellEl;
 }
 
+/** 셀의 값이 변경되었을 때 실행되는 함수입니다 */
+function handleOnChange(value, cell) {
+  cell.data = value;
+}
+
+/** 셀 클릭시 row, column 헤더에 active 클래스를 추가하는 함수입니다 */
 function handleCellClick(cell) {
   clearHeaderActiveStates();
   const columnHeader = spreadsheet[0][cell.column];
@@ -98,9 +125,11 @@ function handleCellClick(cell) {
   const rowHeaderEl = getElFromRowCol(rowHeader.row, rowHeader.column);
   columnHeaderEl.classList.add("active");
   rowHeaderEl.classList.add("active");
-  console.log(columnHeaderEl, rowHeaderEl);
+  document.querySelector("#cell-status").innerHTML =
+    cell.columnName + cell.rowName;
 }
 
+/** 헤더에 active 클래스를 모두 지우는 함수입니다 */
 function clearHeaderActiveStates() {
   const activeHeaderEls = document.querySelectorAll(".active");
   activeHeaderEls.forEach((el) => el.classList.remove("active"));
@@ -110,6 +139,7 @@ function getElFromRowCol(row, col) {
   return document.querySelector(`#cell_${row}${col}`);
 }
 
+/** 실제 html에 Elements를 그리는 함수입니다 */
 function drawSheet() {
   for (let i = 0; i < spreadsheet.length; i += 1) {
     const rowContainerEl = document.createElement("div");
